@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { startCheckout, checkSubscription } from "@/lib/subscription";
 
 const PLATFORMS = [
   { id: "twitter", label: "Twitter / X", icon: "𝕏" },
@@ -315,6 +316,12 @@ export default function AppPage() {
   const [result, setResult] = useState<RepostResult | null>(null);
   const [error, setError] = useState("");
   const [showLimitModal, setShowLimitModal] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkSubscription().then((sub) => setIsSubscribed(sub.active));
+  }, []);
 
   const togglePlatform = (id: string) => {
     setPlatforms((prev) =>
@@ -337,9 +344,13 @@ export default function AppPage() {
     setResult(null);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      const custId = localStorage.getItem("repostai_customer_id");
+      if (custId) headers["x-customer-id"] = custId;
+
       const res = await fetch("/api/repost", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           content,
           tone: tone.toLowerCase(),
@@ -349,7 +360,7 @@ export default function AppPage() {
 
       const data = await res.json();
 
-      if (res.status === 429) {
+      if (res.status === 429 && !isSubscribed) {
         setShowLimitModal(true);
         return;
       }
@@ -379,19 +390,37 @@ export default function AppPage() {
               You&apos;ve used your 3 free reposts for today. Upgrade to Pro for
               unlimited reposts.
             </p>
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={async () => {
+                  const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_ANNUAL;
+                  if (!priceId) { window.location.href = "/pricing"; return; }
+                  setCheckoutLoading("pro-annual");
+                  try { await startCheckout(priceId); } catch { window.location.href = "/pricing"; }
+                }}
+                disabled={checkoutLoading === "pro-annual"}
+                className="w-full py-3 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors font-medium disabled:opacity-50"
+              >
+                {checkoutLoading === "pro-annual" ? "Redirecting..." : "Pro — $79/year (Save 27%)"}
+              </button>
+              <button
+                onClick={async () => {
+                  const priceId = process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY;
+                  if (!priceId) { window.location.href = "/pricing"; return; }
+                  setCheckoutLoading("pro-monthly");
+                  try { await startCheckout(priceId); } catch { window.location.href = "/pricing"; }
+                }}
+                disabled={checkoutLoading === "pro-monthly"}
+                className="w-full py-3 rounded-lg border border-border hover:bg-surface-hover transition-colors font-medium disabled:opacity-50"
+              >
+                {checkoutLoading === "pro-monthly" ? "Redirecting..." : "Pro — $9/month"}
+              </button>
               <button
                 onClick={() => setShowLimitModal(false)}
-                className="flex-1 py-3 rounded-lg border border-border hover:bg-surface-hover transition-colors font-medium"
+                className="text-muted text-sm hover:text-foreground mt-1"
               >
                 Maybe later
               </button>
-              <a
-                href="/pricing"
-                className="flex-1 py-3 rounded-lg bg-primary hover:bg-primary-hover text-white transition-colors font-medium text-center"
-              >
-                Upgrade to Pro
-              </a>
             </div>
           </div>
         </div>

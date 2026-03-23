@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { startCheckout, getCustomerId, openPortal } from "@/lib/subscription";
 
 const tiers = [
   {
@@ -21,6 +22,8 @@ const tiers = [
     cta: "Start Free",
     href: "/app",
     highlight: false,
+    priceEnvMonthly: undefined as string | undefined,
+    priceEnvAnnual: undefined as string | undefined,
   },
   {
     name: "Pro",
@@ -38,8 +41,10 @@ const tiers = [
       "History & saved outputs",
     ],
     cta: "Upgrade to Pro",
-    href: "#",
+    href: null,
     highlight: true,
+    priceEnvMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_MONTHLY,
+    priceEnvAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_PRO_ANNUAL,
   },
   {
     name: "Agency",
@@ -57,14 +62,29 @@ const tiers = [
       "API access",
       "Priority support",
     ],
-    cta: "Contact Us",
-    href: "#",
+    cta: "Upgrade to Agency",
+    href: null,
     highlight: false,
+    priceEnvMonthly: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY_MONTHLY,
+    priceEnvAnnual: process.env.NEXT_PUBLIC_STRIPE_PRICE_AGENCY_ANNUAL,
   },
 ];
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
+  const customerId = typeof window !== "undefined" ? getCustomerId() : null;
+
+  const handleCheckout = async (priceId: string | null | undefined, planName: string) => {
+    if (!priceId) return;
+    setLoading(planName);
+    try {
+      await startCheckout(priceId);
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setLoading(null);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-20">
@@ -157,16 +177,32 @@ export default function PricingPage() {
                 </li>
               ))}
             </ul>
-            <Link
-              href={tier.href}
-              className={`block w-full text-center py-3 rounded-lg font-medium transition-colors ${
-                tier.highlight
-                  ? "bg-primary hover:bg-primary-hover text-white"
-                  : "border border-border hover:bg-surface-hover"
-              }`}
-            >
-              {tier.cta}
-            </Link>
+
+            {tier.href ? (
+              <Link
+                href={tier.href}
+                className="block w-full text-center py-3 rounded-lg font-medium transition-colors border border-border hover:bg-surface-hover"
+              >
+                {tier.cta}
+              </Link>
+            ) : (
+              <button
+                onClick={() =>
+                  handleCheckout(
+                    annual ? tier.priceEnvAnnual : tier.priceEnvMonthly,
+                    tier.name
+                  )
+                }
+                disabled={loading === tier.name}
+                className={`block w-full text-center py-3 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                  tier.highlight
+                    ? "bg-primary hover:bg-primary-hover text-white"
+                    : "border border-border hover:bg-surface-hover"
+                }`}
+              >
+                {loading === tier.name ? "Redirecting..." : tier.cta}
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -175,6 +211,14 @@ export default function PricingPage() {
         <p className="text-sm text-muted">
           Payments powered by Stripe. Cancel anytime.
         </p>
+        {customerId && (
+          <button
+            onClick={() => openPortal()}
+            className="text-primary text-sm hover:underline mt-2"
+          >
+            Manage Subscription
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getStripe } from "@/lib/stripe";
 
 const DAILY_LIMIT = 3;
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -74,11 +75,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Rate limit
+  // Check if subscriber (bypass rate limit)
+  const customerId = req.headers.get("x-customer-id");
+  let isSubscriber = false;
+  if (customerId && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const stripe = getStripe();
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 1 });
+      isSubscriber = subs.data.length > 0;
+    } catch {
+      // Fall through to rate limit
+    }
+  }
+
+  // Rate limit (free users only)
   const ip = getClientIP(req);
   const { allowed, remaining } = checkRateLimit(ip);
 
-  if (!allowed) {
+  if (!allowed && !isSubscriber) {
     return NextResponse.json(
       {
         error: "rate_limited",
