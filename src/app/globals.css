@@ -58,3 +58,30 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
 }
+
+@keyframes heroGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-hero-gradient {
+  background: linear-gradient(
+    -45deg,
+    rgba(99, 102, 241, 0.08),
+    rgba(129, 140, 248, 0.12),
+    rgba(167, 139, 250, 0.08),
+    rgba(99, 102, 241, 0.04)
+  );
+  background-size: 400% 400%;
+  animation: heroGradient 8s ease infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(129, 140, 248, 0.4); }
+  50% { box-shadow: 0 0 20px 4px rgba(129, 140, 248, 0.2); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}

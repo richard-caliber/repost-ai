@@ -1,10 +1,16 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 const tiers = [
   {
-    name: "Free",
-    price: "$0",
-    period: "",
+    name: "Starter",
+    priceMonthly: "$0",
+    priceAnnual: "$0",
+    periodMonthly: "",
+    periodAnnual: "",
+    annualNote: "",
     description: "Perfect for trying it out",
     features: [
       "3 reposts per day",
@@ -18,8 +24,11 @@ const tiers = [
   },
   {
     name: "Pro",
-    price: "$9",
-    period: "/mo",
+    priceMonthly: "$9",
+    priceAnnual: "$79",
+    periodMonthly: "/mo",
+    periodAnnual: "/yr",
+    annualNote: "Save 27%",
     description: "For creators who post daily",
     features: [
       "Unlimited reposts",
@@ -34,8 +43,11 @@ const tiers = [
   },
   {
     name: "Agency",
-    price: "$29",
-    period: "/mo",
+    priceMonthly: "$29",
+    priceAnnual: "$249",
+    periodMonthly: "/mo",
+    periodAnnual: "/yr",
+    annualNote: "Save 28%",
     description: "For teams managing multiple brands",
     features: [
       "Everything in Pro",
@@ -52,15 +64,41 @@ const tiers = [
 ];
 
 export default function PricingPage() {
+  const [annual, setAnnual] = useState(false);
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-20">
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Simple, transparent pricing
         </h1>
-        <p className="text-lg text-muted max-w-xl mx-auto">
+        <p className="text-lg text-muted max-w-xl mx-auto mb-8">
           Start free. Upgrade when you need more. No hidden fees.
         </p>
+
+        {/* Annual/Monthly Toggle */}
+        <div className="inline-flex items-center gap-3 bg-surface border border-border rounded-full p-1">
+          <button
+            onClick={() => setAnnual(false)}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+              !annual
+                ? "bg-primary text-white"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setAnnual(true)}
+            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+              annual
+                ? "bg-primary text-white"
+                : "text-muted hover:text-foreground"
+            }`}
+          >
+            Annual
+          </button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -82,10 +120,20 @@ export default function PricingPage() {
               <h3 className="text-lg font-semibold mb-1">{tier.name}</h3>
               <p className="text-sm text-muted">{tier.description}</p>
             </div>
-            <div className="mb-6">
-              <span className="text-5xl font-bold">{tier.price}</span>
-              <span className="text-muted">{tier.period}</span>
+            <div className="mb-2">
+              <span className="text-5xl font-bold">
+                {annual ? tier.priceAnnual : tier.priceMonthly}
+              </span>
+              <span className="text-muted">
+                {annual ? tier.periodAnnual : tier.periodMonthly}
+              </span>
             </div>
+            {annual && tier.annualNote && (
+              <p className="text-xs text-primary font-medium mb-4">
+                {tier.annualNote}
+              </p>
+            )}
+            {(!annual || !tier.annualNote) && <div className="mb-4" />}
             <ul className="space-y-3 mb-8">
               {tier.features.map((feature) => (
                 <li
