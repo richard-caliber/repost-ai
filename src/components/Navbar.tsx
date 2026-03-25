@@ -2,9 +2,26 @@
 
 import Link from "next/link";
 import { useTheme } from "./ThemeProvider";
+import { useEffect, useState } from "react";
+
+function useProStatus() {
+  const [isPro, setIsPro] = useState(false);
+  useEffect(() => {
+    const flag = localStorage.getItem("pro_user");
+    const expiry = localStorage.getItem("pro_user_expiry");
+    if (flag === "true" && expiry && Date.now() < Number(expiry)) {
+      setIsPro(true);
+    } else if (flag) {
+      localStorage.removeItem("pro_user");
+      localStorage.removeItem("pro_user_expiry");
+    }
+  }, []);
+  return isPro;
+}
 
 export function Navbar() {
   const { theme, toggle } = useTheme();
+  const isPro = useProStatus();
 
   return (
     <nav className="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur-xl">
@@ -19,6 +36,11 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-6">
+          {isPro && (
+            <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">
+              You&apos;re on Pro! ✅
+            </span>
+          )}
           <Link
             href="/app"
             className="text-sm text-muted hover:text-foreground transition-colors"
@@ -26,10 +48,22 @@ export function Navbar() {
             App
           </Link>
           <Link
+            href="/history"
+            className="text-sm text-muted hover:text-foreground transition-colors"
+          >
+            History
+          </Link>
+          <Link
             href="/pricing"
             className="text-sm text-muted hover:text-foreground transition-colors"
           >
             Pricing
+          </Link>
+          <Link
+            href="/for-creators"
+            className="text-sm text-muted hover:text-foreground transition-colors hidden md:block"
+          >
+            For Creators
           </Link>
           <button
             onClick={toggle}

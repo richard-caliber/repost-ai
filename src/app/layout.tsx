@@ -15,9 +15,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RepostAI — One post. Every platform. 10 seconds.",
+  title: "RepostAI — One Post. Every Platform. 10 Seconds.",
   description:
-    "Stop rewriting the same content for Twitter, Instagram, LinkedIn, and email. Paste once, get platform-perfect posts instantly.",
+    "AI-powered content repurposing. Paste once, get optimized posts for Twitter, LinkedIn, Instagram, Reddit, and more.",
+  metadataBase: new URL("https://repostai.shop"),
+  openGraph: {
+    title: "RepostAI — One Post. Every Platform. 10 Seconds.",
+    description:
+      "AI-powered content repurposing. Paste once, get optimized posts for Twitter, LinkedIn, Instagram, Reddit, and more.",
+    url: "https://repostai.shop",
+    siteName: "RepostAI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "RepostAI — One Post. Every Platform. 10 Seconds.",
+    description:
+      "AI-powered content repurposing. Paste once, get optimized posts for Twitter, LinkedIn, Instagram, Reddit, and more.",
+  },
 };
 
 export default function RootLayout({

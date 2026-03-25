@@ -23,6 +23,10 @@ function SuccessContent() {
           localStorage.setItem("repostai_customer_id", data.customerId);
           localStorage.setItem("repostai_sub_active", "true");
           localStorage.removeItem("repostai_sub_cache");
+          // Set pro_user flag with 30-day expiry (temporary until real auth)
+          const expiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+          localStorage.setItem("pro_user", "true");
+          localStorage.setItem("pro_user_expiry", String(expiry));
           setStatus("success");
         } else {
           setStatus("error");

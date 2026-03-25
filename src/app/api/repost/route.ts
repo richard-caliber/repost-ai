@@ -88,21 +88,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Rate limit (free users only)
-  const ip = getClientIP(req);
-  const { allowed, remaining } = checkRateLimit(ip);
-
-  if (!allowed && !isSubscriber) {
-    return NextResponse.json(
-      {
-        error: "rate_limited",
-        message:
-          "You've hit your free limit! Upgrade to Pro for unlimited reposts.",
-      },
-      { status: 429 }
-    );
-  }
-
   try {
     const body = await req.json();
     const { content, tone, platforms } = body;
@@ -111,6 +96,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Content must be at least 10 characters" },
         { status: 400 }
+      );
+    }
+
+    // Rate limit (free users only) — checked after input validation
+    // so invalid requests don't consume the limit
+    const ip = getClientIP(req);
+    const { allowed, remaining } = checkRateLimit(ip);
+
+    if (!allowed && !isSubscriber) {
+      return NextResponse.json(
+        {
+          error: "rate_limited",
+          message:
+            "You've hit your free limit! Upgrade to Pro for unlimited reposts.",
+        },
+        { status: 429 }
       );
     }
 

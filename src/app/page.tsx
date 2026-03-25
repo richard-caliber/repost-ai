@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 
 const testimonials = [
   {
@@ -52,7 +53,7 @@ export default function Home() {
         <div className="absolute inset-0 animate-hero-gradient pointer-events-none" />
         <div className="max-w-6xl mx-auto px-4 pt-24 pb-20 text-center relative">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm px-4 py-1.5 rounded-full mb-6 font-medium">
-            Used by 2,000+ creators and marketers
+            Join creators who save 2+ hours per day
           </div>
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight mb-6">
             One Post.
@@ -241,7 +242,7 @@ export default function Home() {
                 $9<span className="text-lg text-muted">/mo</span>
               </div>
               <p className="text-xs text-primary mb-4">
-                or $79/yr — Save 27%
+                or $6.58/mo billed annually at $79/yr — save 27%
               </p>
               <p className="text-sm text-muted mb-6">Unlimited reposts, priority speed</p>
               <Link
@@ -257,7 +258,7 @@ export default function Home() {
                 $29<span className="text-lg text-muted">/mo</span>
               </div>
               <p className="text-xs text-primary mb-4">
-                or $249/yr — Save 28%
+                or $20.75/mo billed annually at $249/yr — save 28%
               </p>
               <p className="text-sm text-muted mb-6">Team + brand voice + API</p>
               <Link
@@ -328,22 +329,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-10">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-xs">R</span>
-            </div>
-            <span className="font-semibold">
-              Repost<span className="text-primary">AI</span>
-            </span>
-          </div>
-          <p className="text-sm text-muted">
-            &copy; {new Date().getFullYear()} RepostAI. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

@@ -2,6 +2,10 @@ const CUSTOMER_KEY = "repostai_customer_id";
 const SUB_CACHE_KEY = "repostai_sub_cache";
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+const REPOST_COUNT_KEY = "repost_count";
+const REPOST_DATE_KEY = "repost_date";
+const FREE_DAILY_LIMIT = 3;
+
 interface SubStatus {
   active: boolean;
   plan: string | null;
@@ -53,6 +57,30 @@ export async function openPortal(): Promise<void> {
   });
   const { url } = await res.json();
   if (url) window.location.href = url;
+}
+
+export function getRepostUsage(): { count: number; remaining: number } {
+  if (typeof window === "undefined") return { count: 0, remaining: FREE_DAILY_LIMIT };
+
+  const today = new Date().toISOString().slice(0, 10);
+  const storedDate = localStorage.getItem(REPOST_DATE_KEY);
+
+  if (storedDate !== today) {
+    localStorage.setItem(REPOST_COUNT_KEY, "0");
+    localStorage.setItem(REPOST_DATE_KEY, today);
+    return { count: 0, remaining: FREE_DAILY_LIMIT };
+  }
+
+  const count = parseInt(localStorage.getItem(REPOST_COUNT_KEY) || "0", 10);
+  return { count, remaining: Math.max(0, FREE_DAILY_LIMIT - count) };
+}
+
+export function incrementRepostCount(): void {
+  if (typeof window === "undefined") return;
+  const today = new Date().toISOString().slice(0, 10);
+  localStorage.setItem(REPOST_DATE_KEY, today);
+  const current = parseInt(localStorage.getItem(REPOST_COUNT_KEY) || "0", 10);
+  localStorage.setItem(REPOST_COUNT_KEY, String(current + 1));
 }
 
 export async function startCheckout(priceId: string): Promise<void> {

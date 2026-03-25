@@ -11,7 +11,8 @@ const tiers = [
     priceAnnual: "$0",
     periodMonthly: "",
     periodAnnual: "",
-    annualNote: "",
+    monthlyEquivalent: "",
+    billedNote: "",
     description: "Perfect for trying it out",
     features: [
       "3 reposts per day",
@@ -31,7 +32,8 @@ const tiers = [
     priceAnnual: "$79",
     periodMonthly: "/mo",
     periodAnnual: "/yr",
-    annualNote: "Save 27%",
+    monthlyEquivalent: "$6.58/mo",
+    billedNote: "billed $79/yr",
     description: "For creators who post daily",
     features: [
       "Unlimited reposts",
@@ -52,7 +54,8 @@ const tiers = [
     priceAnnual: "$249",
     periodMonthly: "/mo",
     periodAnnual: "/yr",
-    annualNote: "Save 28%",
+    monthlyEquivalent: "$20.75/mo",
+    billedNote: "billed $249/yr",
     description: "For teams managing multiple brands",
     features: [
       "Everything in Pro",
@@ -75,13 +78,20 @@ export default function PricingPage() {
   const [loading, setLoading] = useState<string | null>(null);
   const customerId = typeof window !== "undefined" ? getCustomerId() : null;
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleCheckout = async (priceId: string | null | undefined, planName: string) => {
-    if (!priceId) return;
+    if (!priceId) {
+      setError("Checkout is not configured yet. Please contact support.");
+      return;
+    }
+    setError(null);
     setLoading(planName);
     try {
       await startCheckout(priceId);
     } catch (err) {
       console.error("Checkout error:", err);
+      setError(err instanceof Error ? err.message : "Checkout failed. Please try again.");
       setLoading(null);
     }
   };
@@ -97,12 +107,12 @@ export default function PricingPage() {
         </p>
 
         {/* Annual/Monthly Toggle */}
-        <div className="inline-flex items-center gap-3 bg-surface border border-border rounded-full p-1">
+        <div className="inline-flex items-center gap-1 bg-surface border-2 border-border rounded-full p-1.5">
           <button
             onClick={() => setAnnual(false)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
               !annual
-                ? "bg-primary text-white"
+                ? "bg-primary text-white shadow-md"
                 : "text-muted hover:text-foreground"
             }`}
           >
@@ -110,16 +120,23 @@ export default function PricingPage() {
           </button>
           <button
             onClick={() => setAnnual(true)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
               annual
-                ? "bg-primary text-white"
+                ? "bg-primary text-white shadow-md"
                 : "text-muted hover:text-foreground"
             }`}
           >
             Annual
+            <span className="ml-1.5 text-xs opacity-80">Save up to 28%</span>
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="max-w-md mx-auto mb-8 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {tiers.map((tier) => (
@@ -140,20 +157,37 @@ export default function PricingPage() {
               <h3 className="text-lg font-semibold mb-1">{tier.name}</h3>
               <p className="text-sm text-muted">{tier.description}</p>
             </div>
-            <div className="mb-2">
-              <span className="text-5xl font-bold">
-                {annual ? tier.priceAnnual : tier.priceMonthly}
-              </span>
-              <span className="text-muted">
-                {annual ? tier.periodAnnual : tier.periodMonthly}
-              </span>
-            </div>
-            {annual && tier.annualNote && (
-              <p className="text-xs text-primary font-medium mb-4">
-                {tier.annualNote}
-              </p>
+
+            {annual && tier.monthlyEquivalent ? (
+              <div className="mb-2">
+                <div className="flex items-baseline gap-2 mb-1">
+                  <span className="text-sm text-muted line-through">
+                    {tier.priceMonthly}/mo
+                  </span>
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                    Save {tier.name === "Pro" ? "27%" : "28%"}
+                  </span>
+                </div>
+                <span className="text-5xl font-bold">{tier.monthlyEquivalent.replace("/mo", "")}</span>
+                <span className="text-muted">/mo</span>
+                <p className="text-xs text-primary font-medium mt-1">
+                  {tier.billedNote}
+                </p>
+              </div>
+            ) : (
+              <div className="mb-2">
+                <span className="text-5xl font-bold">
+                  {annual ? tier.priceAnnual : tier.priceMonthly}
+                </span>
+                <span className="text-muted">
+                  {annual ? tier.periodAnnual : tier.periodMonthly}
+                </span>
+              </div>
             )}
-            {(!annual || !tier.annualNote) && <div className="mb-4" />}
+
+            {(!annual || !tier.monthlyEquivalent) && <div className="mb-4" />}
+            {annual && tier.monthlyEquivalent && <div className="mb-2" />}
+
             <ul className="space-y-3 mb-8">
               {tier.features.map((feature) => (
                 <li
